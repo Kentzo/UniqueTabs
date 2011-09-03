@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>DefaultValue</key>
+		<string>timer</string>
+		<key>Key</key>
+		<string>mode</string>
+		<key>Title</key>
+		<string>When to unique tabs</string>
+		<key>Titles</key>
+		<array>
+			<string>By timer</string>
+			<string>When new page is loaded</string>
+		</array>
+		<key>Type</key>
+		<string>RadioButtons</string>
+		<key>Values</key>
+		<array>
+			<string>timer</string>
+			<string>page</string>
+		</array>
+	</dict>
+	<dict>
+		<key>DefaultValue</key>
+		<real>60</real>
+		<key>Key</key>
+		<string>delay</string>
+		<key>Title</key>
+		<string>Timer delay in seconds</string>
+		<key>Type</key>
+		<string>TextField</string>
+	</dict>
+</array>
+</plist>

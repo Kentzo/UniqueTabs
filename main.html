@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<script>
+function listOfTabs()
+{
+    var windows = safari.application.browserWindows;
+    var tabs = [];
+    for (var windowIdx = 0; windowIdx < windows.length; ++windowIdx) {
+        tabs = tabs.concat(windows[windowIdx].tabs);
+    }
+    return tabs;
+}
+
+function packedTabsByURL(aTabs)
+{
+    var packedTabs = [];
+    for (var tabIdx = 0; tabIdx < aTabs.length; ++tabIdx) {
+        var tab = aTabs[tabIdx];
+        if (typeof packedTabs[tab.url] === "undefined")
+            packedTabs[tab.url] = [];
+        packedTabs[tab.url].push(tab);
+    }
+    return packedTabs;
+}
+
+function uniqueTabs(aTabs)
+{
+    function compareTabsByActivity(aLeftTab, aRightTab) {
+        // 1 if tab is active on actvie window
+        // 0 if tab is active
+        // -1 if tab isn't active
+        function activityValue(aTab) {
+            if (aTab === aTab.browserWindow.activeTab)
+            {
+                if (aTab.browserWindow === safari.application.activeBrowserWindow)
+                    return 1;
+                else
+                    return 0;
+            }
+            else
+                return -1;
+        }
+        return activityValue(aRightTab) - activityValue(aLeftTab);
+    }
+    aTabs.sort(compareTabsByActivity);
+
+    for (var tabIdx = 1; tabIdx < aTabs.length; ++tabIdx) {
+        aTabs[tabIdx].close();
+    }
+}
+
+function unique()
+{
+    var tabs = listOfTabs();
+    var tabsByURL = packedTabsByURL(tabs);
+    for (url in tabsByURL) {
+        uniqueTabs(tabsByURL[url]);
+    }
+}
+
+
+var mainTimer;
+
+function scheduleMainTimer()
+{
+    var delay = safari.extension.settings.delay * 1000;
+    delay = (isNaN(delay) || delay < 1000) ? 1000 : delay;
+    if (typeof mainTimer === "undefined")
+        mainTimer = setTimeout("doMainTimer()", delay);
+}
+
+function doMainTimer()
+{
+    unique();
+    mainTimer = undefined;
+    scheduleMainTimer();
+}
+
+function invalidateMainTimer()
+{
+    if (typeof mainTimer !== "undefined") {
+        clearTimeout(mainTimer);
+        mainTimer = undefined;
+    }
+}
+
+function setTimerMode()
+{
+    unique();
+    scheduleMainTimer();
+}
+
+function unsetTimerMode()
+{
+    invalidateMainTimer();
+}
+
+
+function navigateHandler(event)
+{
+    unique();
+}
+
+function setPageMode()
+{
+    unique();
+    safari.application.addEventListener("navigate", navigateHandler, false);
+}
+
+function unsetPageMode()
+{
+    safari.application.removeEventListener("navigate", navigateHandler, false);
+}
+
+
+function main()
+{
+    function openHandler(event)
+    {
+        if (safari.extension.settings.mode == "timer") {
+            if (safari.application.browserWindows.length == 1)
+                scheduleMainTimer();
+        }
+    }
+    function closeHandler(event)
+    {
+        if (safari.extension.settings.mode == "timer") {
+            if (safari.application.browserWindows.length == 0)
+                invalidateMainTimer();
+        }
+    }
+    function changeHandler(event)
+    {
+        switch (event.key) {
+            case "mode":
+                unsetTimerMode();
+                unsetPageMode();
+                switch (event.newValue) {
+                    case "timer":
+                        setTimerMode();
+                        break;
+                    case "page":
+                        setPageMode();
+                        break;
+                }
+                break;
+            case "delay":
+                if (safari.extension.settings.mode == "timer") {
+                    unsetTimerMode();
+                    setTimerMode();
+                }
+                break;
+        }
+    }
+
+    safari.application.addEventListener("page", openHandler, false);
+
+    safari.application.addEventListener("close", closeHandler, false);
+
+    safari.extension.settings.addEventListener("change", changeHandler, false);
+
+    switch (safari.extension.settings.mode) {
+        case "timer":
+            setTimerMode();
+            break;
+        case "page":
+            setPageMode();
+            break;
+    }
+}
+
+main();
+</script>
