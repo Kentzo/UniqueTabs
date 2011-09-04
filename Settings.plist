@@ -8,7 +8,7 @@
 		<key>Key</key>
 		<string>mode</string>
 		<key>Title</key>
-		<string>When to unique tabs</string>
+		<string>When to make tabs unique</string>
 		<key>Titles</key>
 		<array>
 			<string>By timer</string>
